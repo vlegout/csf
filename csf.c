@@ -65,7 +65,7 @@ int main(void)
 	double b;
 
 	double dbf, sbf;
-	double k;
+	int k;
 
 	double hyperperiod = get_hyperperiod(n_tasks, t);
 
@@ -99,7 +99,7 @@ int main(void)
 				break;
 			}
 
-			/* printf("b %lf, time %.0lf: dbf %lf, sbf %lf, k %lf\n", b, time, dbf, sbf, k); */
+			/* printf("b %lf, time %.0lf: dbf %lf, sbf %lf, k %d\n", b, time, dbf, sbf, k); */
 		}
 
 		if (schedulable) {
