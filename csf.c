@@ -11,7 +11,6 @@
 #include <math.h>
 #include <stdio.h>
 
-#define PERIOD 10.0
 #define INC 0.001
 
 struct task {
@@ -59,7 +58,10 @@ int main(void)
 
 	int n_tasks = 2;
 
-	struct server s = { 0.0, PERIOD };
+	double period = 10.0;
+	double period_max = 75;
+
+	struct server s = { 0.0, 0.0 };
 
 	double time;
 	double b;
@@ -69,44 +71,56 @@ int main(void)
 
 	double hyperperiod = get_hyperperiod(n_tasks, t);
 
-	for (b = 0; b < PERIOD; b += 0.1) {
-		s.budget = b;
+#ifdef SOLUTION_SPACE
+	for (period = 1; period < period_max; period++) {
+#endif
 
-		schedulable = 1;
+		s.period = period;
 
-		for (time = 0; time <= hyperperiod; time++) {
-			dbf = 0;
-			sbf = 0;
+		for (b = 0; b < period; b += 0.1) {
+			s.budget = b;
 
-			for (i = 0; i < n_tasks; i++) {
-				dbf += floor(time / t[i].period) * t[i].wcet;
+			schedulable = 1;
+
+			for (time = 0; time <= hyperperiod; time++) {
+				dbf = 0;
+				sbf = 0;
+
+				for (i = 0; i < n_tasks; i++) {
+					dbf += floor(time / t[i].period) * t[i].wcet;
+				}
+
+				k = ceil((time - (s.period - s.budget)) / s.period);
+
+				if (k < 1)
+					k = 1;
+
+				if (time >= ((k + 1) * s.period - 2 * s.budget) &&
+				    time <= ((k + 1) * s.period - s.budget)) {
+					sbf = time - (k + 1) * (s.period - s.budget);
+				} else {
+					sbf = (k - 1) * s.budget;
+				}
+
+				if (dbf > sbf) {
+					schedulable = 0;
+					break;
+				}
 			}
 
-			k = ceil((time - (s.period - s.budget)) / s.period);
-
-			if (k < 1)
-				k = 1;
-
-			if (time >= ((k + 1) * s.period - 2 * s.budget) &&
-			    time <= ((k + 1) * s.period - s.budget)) {
-				sbf = time - (k + 1) * (s.period - s.budget);
-			} else {
-				sbf = (k - 1) * s.budget;
-			}
-
-			if (dbf > sbf) {
-				schedulable = 0;
+			if (schedulable) {
+#ifndef SOLUTION_SPACE
+				printf("budget = %lf, period = %lf\n", b, period);
+#endif
 				break;
 			}
-
-			/* printf("b %lf, time %.0lf: dbf %lf, sbf %lf, k %d\n", b, time, dbf, sbf, k); */
 		}
 
-		if (schedulable) {
-			printf("budget = %lf, period = %lf\n", b, PERIOD);
-			break;
-		}
+#ifdef SOLUTION_SPACE
+		printf("%lf %lf\n", period, b / period);
+
 	}
+#endif
 
 	return 0;
 }

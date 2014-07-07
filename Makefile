@@ -1,5 +1,15 @@
 
+DATA=tmp.data
+
 all: csf
 
 csf: csf.c
-	gcc -lm -Wall -Werror -o csf csf.c
+	gcc -lm -Wall -o csf csf.c
+
+plot.png:
+	gcc -lm -Wall -o csf csf.c -DSOLUTION_SPACE
+
+	rm -f $(DATA)
+	./csf > $(DATA)
+	gnuplot csf.p
+	rm -f $(DATA)
