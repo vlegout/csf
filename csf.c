@@ -34,6 +34,7 @@ static double gcd(double a, double b)
 		return a;
 }
 
+__attribute__ ((unused))
 static double get_hyperperiod(int n_tasks, struct task *t)
 {
 	int i;
@@ -48,9 +49,30 @@ static double get_hyperperiod(int n_tasks, struct task *t)
 	return h;
 }
 
+static double compute_sbf(double time, struct server *s)
+{
+	double sbf;
+	int k = ceil((time - (s->period - s->budget)) / s->period);
+
+	if (k < 1)
+		k = 1;
+
+	if (time >= ((k + 1) * s->period - 2 * s->budget) &&
+	    time <= ((k + 1) * s->period - s->budget)) {
+		sbf = time - (k + 1) * (s->period - s->budget);
+	} else {
+		sbf = (k - 1) * s->budget;
+	}
+
+	return sbf;
+}
+
 int main(void)
 {
-	int i, schedulable;
+	int i, j, schedulable;
+	double b, dbf, time, sbf;
+
+	struct server s = { 0.0, 0.0 };
 
 	struct task t[2] = { {7.0, 50.0}, {9.0, 75.0} };	// 2.8, 10
 	/* struct task t[2] = { {5.0, 40.0}, {4.0, 25.0} };     // 3.1, 10 */
@@ -63,15 +85,9 @@ int main(void)
 	double period_max = 75;
 #endif
 
-	struct server s = { 0.0, 0.0 };
-
-	double time;
-	double b;
-
-	double dbf, sbf;
-	int k;
-
+#ifndef RM
 	double hyperperiod = get_hyperperiod(n_tasks, t);
+#endif
 
 #ifdef SOLUTION_SPACE
 	for (period = 1; period < period_max; period++) {
@@ -82,35 +98,53 @@ int main(void)
 		for (b = 0; b < period; b += INC) {
 			s.budget = b;
 
-			schedulable = 1;
+			schedulable = 0;
 
+#ifdef RM
+			for (j = 0; j < n_tasks; j++) {
+				for (time = 1; time <= t[j].period; time++) {
+
+					dbf = t[j].wcet;
+
+					for (i = 0; i < n_tasks; i++) {
+						if (i != j && (t[i].period >= t[j].period || (t[i].period == t[j].period && j < i))) {
+							dbf += ceil(time / t[i].period) * t[i].wcet;
+						}
+					}
+
+					sbf = compute_sbf(time, &s);
+
+					if (dbf <= sbf) {
+						schedulable = 1;
+						goto end;
+					}
+				}
+			}
+end:
+
+#else
 			for (time = 0; time <= hyperperiod; time++) {
+
 				dbf = 0;
-				sbf = 0;
 
 				for (i = 0; i < n_tasks; i++) {
 					dbf += floor(time / t[i].period) * t[i].wcet;
 				}
 
-				k = ceil((time - (s.period - s.budget)) / s.period);
-
-				if (k < 1)
-					k = 1;
-
-				if (time >= ((k + 1) * s.period - 2 * s.budget) &&
-				    time <= ((k + 1) * s.period - s.budget)) {
-					sbf = time - (k + 1) * (s.period - s.budget);
-				} else {
-					sbf = (k - 1) * s.budget;
-				}
+				sbf = compute_sbf(time, &s);
 
 				if (dbf > sbf) {
-					schedulable = 0;
+					schedulable = 1;
 					break;
 				}
 			}
+#endif
 
+#ifdef RM
 			if (schedulable) {
+#else
+			if (!schedulable) {
+#endif
 #ifndef SOLUTION_SPACE
 				printf("budget = %lf, period = %lf\n", b, period);
 #endif

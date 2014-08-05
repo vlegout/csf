@@ -1,18 +1,32 @@
 
 DATA=tmp.data
+SOURCE=csf.c
 
-all: csf
+all: edf
 
-csf: csf.c
-	gcc -lm -Wall -o csf csf.c
+edf:
+	gcc -lm -Wall -o $@ $(SOURCE)
 
-plot.png:
-	gcc -lm -Wall -o csf csf.c -DSOLUTION_SPACE
+rm:
+	gcc -lm -Wall -o $@ $(SOURCE) -DRM
+
+edf.png:
+	gcc -lm -Wall -o csf $(SOURCE) -DSOLUTION_SPACE
 
 	rm -f $(DATA)
 	./csf > $(DATA)
-	gnuplot csf.p
+	gnuplot edf.p
+	rm -f $(DATA) csf
+
+rm.png:
+	gcc -lm -Wall -o csf $(SOURCE) -DRM -DSOLUTION_SPACE
+
+	rm -f $(DATA)
+	./csf > $(DATA)
+	gnuplot rm.p
 	rm -f $(DATA) csf
 
 clean:
-	rm -f csf csf.png
+	rm -f edf rm edf.png rm.png
+
+.PHONY: edf rm edf.png rm.png
