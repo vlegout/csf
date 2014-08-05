@@ -59,7 +59,9 @@ int main(void)
 	int n_tasks = 2;
 
 	double period = 10.0;
+#ifdef SOLUTION_SPACE
 	double period_max = 75;
+#endif
 
 	struct server s = { 0.0, 0.0 };
 
