@@ -12,7 +12,7 @@ plot.png:
 	rm -f $(DATA)
 	./csf > $(DATA)
 	gnuplot csf.p
-	rm -f $(DATA)
+	rm -f $(DATA) csf
 
 clean:
 	rm -f csf csf.png
