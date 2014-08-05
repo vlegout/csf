@@ -77,7 +77,7 @@ int main(void)
 
 		s.period = period;
 
-		for (b = 0; b < period; b += 0.1) {
+		for (b = 0; b < period; b += INC) {
 			s.budget = b;
 
 			schedulable = 1;
