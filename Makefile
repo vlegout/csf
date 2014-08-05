@@ -13,3 +13,6 @@ plot.png:
 	./csf > $(DATA)
 	gnuplot csf.p
 	rm -f $(DATA)
+
+clean:
+	rm -f csf csf.png
