@@ -67,10 +67,64 @@ static double compute_sbf(double time, struct server *s)
 	return sbf;
 }
 
+__attribute__ ((unused))
+static int is_sched_edf(struct task *t, int n_tasks, struct server *s)
+{
+	int i;
+	double dbf, sbf, time;
+
+	double hyperperiod = get_hyperperiod(n_tasks, t);
+
+	for (time = 0; time <= hyperperiod; time++) {
+
+		dbf = 0;
+
+		for (i = 0; i < n_tasks; i++) {
+			dbf += floor(time / t[i].period) * t[i].wcet;
+		}
+
+		sbf = compute_sbf(time, s);
+
+		if (dbf > sbf)
+			return 0;
+	}
+
+	return 1;
+}
+
+__attribute__ ((unused))
+static int is_sched_rm(struct task *t, int n_tasks, struct server *s)
+{
+	int i, j;
+	double dbf, sbf, time;
+
+	for (j = 0; j < n_tasks; j++) {
+		for (time = 1; time <= t[j].period; time++) {
+
+			dbf = t[j].wcet;
+
+			for (i = 0; i < n_tasks; i++) {
+				if (i != j &&
+				    (t[i].period >= t[j].period ||
+				     (t[i].period == t[j].period && j < i))) {
+					dbf += ceil(time / t[i].period) * t[i].wcet;
+				}
+			}
+
+			sbf = compute_sbf(time, s);
+
+			if (dbf <= sbf)
+				return 1;
+		}
+	}
+
+	return 0;
+}
+
 int main(void)
 {
-	int i, j, schedulable;
-	double b, dbf, time, sbf;
+	int schedulable;
+	double b;
 
 	struct server s = { 0.0, 0.0 };
 
@@ -81,15 +135,10 @@ int main(void)
 	int n_tasks = 2;
 
 	double period = 10.0;
+
 #ifdef SOLUTION_SPACE
 	double period_max = 75;
-#endif
 
-#ifndef RM
-	double hyperperiod = get_hyperperiod(n_tasks, t);
-#endif
-
-#ifdef SOLUTION_SPACE
 	for (period = 1; period < period_max; period++) {
 #endif
 
@@ -98,53 +147,13 @@ int main(void)
 		for (b = 0; b < period; b += INC) {
 			s.budget = b;
 
-			schedulable = 0;
-
 #ifdef RM
-			for (j = 0; j < n_tasks; j++) {
-				for (time = 1; time <= t[j].period; time++) {
-
-					dbf = t[j].wcet;
-
-					for (i = 0; i < n_tasks; i++) {
-						if (i != j && (t[i].period >= t[j].period || (t[i].period == t[j].period && j < i))) {
-							dbf += ceil(time / t[i].period) * t[i].wcet;
-						}
-					}
-
-					sbf = compute_sbf(time, &s);
-
-					if (dbf <= sbf) {
-						schedulable = 1;
-						goto end;
-					}
-				}
-			}
-end:
-
+			schedulable = is_sched_rm(t, n_tasks, &s);
 #else
-			for (time = 0; time <= hyperperiod; time++) {
-
-				dbf = 0;
-
-				for (i = 0; i < n_tasks; i++) {
-					dbf += floor(time / t[i].period) * t[i].wcet;
-				}
-
-				sbf = compute_sbf(time, &s);
-
-				if (dbf > sbf) {
-					schedulable = 1;
-					break;
-				}
-			}
+			schedulable = is_sched_edf(t, n_tasks, &s);
 #endif
 
-#ifdef RM
 			if (schedulable) {
-#else
-			if (!schedulable) {
-#endif
 #ifndef SOLUTION_SPACE
 				printf("budget = %lf, period = %lf\n", b, period);
 #endif
