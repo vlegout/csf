@@ -95,10 +95,13 @@ static int is_sched_edf(struct task *t, int n_tasks, struct server *s)
 __attribute__ ((unused))
 static int is_sched_rm(struct task *t, int n_tasks, struct server *s)
 {
-	int i, j;
+	int i, j, schedulable;
 	double dbf, sbf, time;
 
 	for (j = 0; j < n_tasks; j++) {
+
+		schedulable = 0;
+
 		for (time = 1; time <= t[j].period; time++) {
 
 			dbf = t[j].wcet;
@@ -114,11 +117,14 @@ static int is_sched_rm(struct task *t, int n_tasks, struct server *s)
 			sbf = compute_sbf(time, s);
 
 			if (dbf <= sbf)
-				return 1;
+				schedulable = 1;
 		}
+
+		if (schedulable == 0)
+			return 0;
 	}
 
-	return 0;
+	return 1;
 }
 
 int main(void)
