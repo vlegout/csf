@@ -26,7 +26,23 @@ rm.png:
 	gnuplot rm.p
 	rm -f $(DATA) csf
 
-clean:
-	rm -f edf rm edf.png rm.png
+u_edf.png:
+	gcc -lm -Wall -o u_edf utilization.c
 
-.PHONY: edf rm edf.png rm.png
+	rm -f $(DATA)
+	./u_edf > $(DATA)
+	gnuplot u_edf.p
+	rm -f $(DATA) u_edf
+
+u_rm.png:
+	gcc -lm -Wall -o u_rm utilization.c -DRM
+
+	rm -f $(DATA)
+	./u_rm > $(DATA)
+	gnuplot u_rm.p
+	rm -f $(DATA) u_rm
+
+clean:
+	rm -f edf rm edf.png rm.png u_edf.png u_rm.png
+
+.PHONY: edf rm edf.png rm.png u_edf.png u_rm.png
