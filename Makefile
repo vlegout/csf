@@ -8,6 +8,8 @@ FLAGS=-Wall -lm
 
 all: edf
 
+full: edf.png rm.png u_edf.png u_rm.png
+
 edf:
 	gcc $(FLAGS) -o $@ $(SOURCE)
 
