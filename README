@@ -5,8 +5,7 @@ and EDF.
 
 To reproduce the figures given in the paper, run (need gnuplot):
 
- make edf.png
- make rm.png
+ make full
 
 Based on the following paper:
 
