@@ -32,6 +32,12 @@ rm.png:
 	gnuplot rm.p
 	rm -f $(DATA) csf
 
+u_edf:
+	gcc $(FLAGS) -o $@ $(SOURCE_U)
+
+u_rm:
+	gcc $(FLAGS) -o $@ $(SOURCE_U) -DRM
+
 u_edf.png:
 	gcc $(FLAGS) -o u_edf $(SOURCE_U)
 
@@ -49,6 +55,6 @@ u_rm.png:
 	rm -f $(DATA) u_rm
 
 clean:
-	rm -f edf rm edf.png rm.png u_edf.png u_rm.png
+	rm -f edf rm edf.png rm.png u_edf u_rm u_edf.png u_rm.png
 
-.PHONY: edf rm edf.png rm.png u_edf.png u_rm.png
+.PHONY: edf rm edf.png rm.png u_edf u_rm u_edf.png u_rm.png
