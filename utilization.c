@@ -37,6 +37,8 @@
 #define PERIOD 10.0
 #define P_MIN 20.0
 
+#define N_VM 4
+
 int get_k(double p_min)
 {
 	int k = 0;
@@ -106,7 +108,8 @@ int main(void)
 			bound = get_edf_bound(i, k[j]);
 #endif
 
-			printf(" %lf", bound);
+
+			printf(" %lf", pow(bound, N_VM));
 		}
 
 		printf("\n");
